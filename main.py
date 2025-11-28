@@ -59,6 +59,36 @@ class BoardHistory:
             node.next = None
             node = nxt
 
+def draw(board, lastMousePos):
+    mouseStatus = pygame.mouse.get_pressed()
+    if mouseStatus[0] or mouseStatus[2]:
+        mouseX, mouseY = pygame.mouse.get_pos()
+        selectedX = mouseX // 20
+        selectedY = mouseY // 20
+
+        if 0 <= selectedX < 28 and 0 <= selectedY < 28:
+            if lastMousePos is None:
+                lastMousePos = (selectedX, selectedY)
+
+            # Draw along the line between lastMousePos and current pos
+            lx, ly = lastMousePos
+
+            dx = selectedX - lx
+            dy = selectedY - ly
+            steps = max(abs(dx), abs(dy))
+            if steps != 0:
+                for i in range(steps + 1):
+                    t = i / steps
+                    x = int(lx + dx * t)
+                    y = int(ly + dy * t)
+                    if 0 <= x < 28 and 0 <= y < 28:
+                        board.setValue(x, y, 255 if mouseStatus[0] else 0)
+            else:
+                board.setValue(selectedX, selectedY, 255 if mouseStatus[0] else 0)
+            lastMousePos = (selectedX, selectedY)
+    else:
+        lastMousePos = None   # Reset when mouse not held
+    return lastMousePos
 
 def updateDisplay(WIN, board: Drawing):
     #Control Space Background
@@ -83,7 +113,7 @@ def updateDisplay(WIN, board: Drawing):
 def main():
     board = Drawing()
     boardHistory = BoardHistory(board)
-    last_pos = None
+    lastMousePos = None
     Clock = pygame.time.Clock()
     run = True
     while run:
@@ -106,36 +136,9 @@ def main():
                 if event.key == pygame.K_r:
                     board = Drawing()
                     boardHistory = BoardHistory(board)
-
-        mouseStatus = pygame.mouse.get_pressed()
-        if mouseStatus[0] or mouseStatus[2]:
-            mouseX, mouseY = pygame.mouse.get_pos()
-            selectedX = mouseX // 20
-            selectedY = mouseY // 20
-
-            if 0 <= selectedX < 28 and 0 <= selectedY < 28:
-                if last_pos is None:
-                    last_pos = (selectedX, selectedY)
-
-                # Draw along the line between last_pos and current pos
-                lx, ly = last_pos
-
-                dx = selectedX - lx
-                dy = selectedY - ly
-                steps = max(abs(dx), abs(dy))
-                if steps != 0:
-                    for i in range(steps + 1):
-                        t = i / steps
-                        x = int(lx + dx * t)
-                        y = int(ly + dy * t)
-                        if 0 <= x < 28 and 0 <= y < 28:
-                            board.setValue(x, y, 255 if mouseStatus[0] else 0)
-                else:
-                    board.setValue(selectedX, selectedY, 255 if mouseStatus[0] else 0)
-                last_pos = (selectedX, selectedY)
-        else:
-            last_pos = None   # Reset when mouse not held
-
+        
+        #Handle Drawing on the Picture
+        lastMousePos = draw(board, lastMousePos)
 
         updateDisplay(WIN, board)
 
